@@ -1,0 +1,17 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © nhagiaodich
+
+//@version=5
+indicator("EMA 8/21 nhagiaodich", shorttitle="EMA 8/21 nhagiaodich", overlay=true, precision=8)
+
+ema1 = input.int(8, title="EMA 8", minval=1)
+ema2 = input.int(21, title="EMA 21", minval=1)
+src = input.source(close, title="Bar")
+
+xEMA1 = ta.ema(src, ema1)
+xEMA2 = ta.ema(src, ema2)
+
+plot(xEMA1, color=color.green, linewidth=3, title="EMA1")
+plot(xEMA2, color=color.blue, linewidth=3, title="EMA2")
+
+barcolor(xEMA1 > xEMA2 ? color.green : color.red)
