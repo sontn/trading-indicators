@@ -1,0 +1,46 @@
+//@version=5
+indicator("Elder Supercombine", shorttitle="NhaGiaoDich Impulse", overlay = true)
+myema = input.int(26, title="Center EMA", minval=0)
+lookback = input.int(100, title="Lookback", minval=0)
+multiplier = input.float(2, title="Multiplier", minval=0, step=0.01)
+shortema = input.int(13, title="Short EMA", minval=1)
+mode = input.bool(true, title="Use Close?")
+
+// AutoEnvelope
+centerline = ta.ema(close, myema)
+myvar = mode ? math.abs(close - centerline) : math.max(math.abs(high - centerline), math.abs(low - centerline))
+myvars = myvar * myvar
+mymov = math.sqrt(ta.sma(myvars, lookback))
+
+newmax = math.max(mymov, math.max(mymov[1], math.max(mymov[2], math.max(mymov[3], math.max(mymov[4], mymov[5])))))
+
+upper = centerline + (newmax * multiplier)
+lower = centerline - (newmax * multiplier)
+
+// MACD Options
+macd_length_fast   = input.int(12, minval=1, title="MACD Fast Length")
+macd_length_slow   = input.int(26, minval=1, title="MACD Slow Length")
+macd_length_signal = input.int(9, minval=1, title="MACD Signal Length")
+
+// Calculate MACD
+macd_ma_fast       = ta.ema(close, macd_length_fast)
+macd_ma_slow       = ta.ema(close, macd_length_slow)
+macd               = macd_ma_fast - macd_ma_slow
+macd_signal        = ta.ema(macd, macd_length_signal)
+macd_histogram     = macd - macd_signal
+
+// Calculate EMA
+ema_val            = ta.ema(close, shortema)
+
+// Plot AutoEnvelope
+plot(centerline, title="Center EMA", color=color.red, linewidth=2)
+plot(ema_val, title="Short EMA", color=color.blue, linewidth=2)
+// plot(upper, title="Upper Channel", linewidth=1)
+// plot(lower, title="Lower Channel", linewidth=1)
+
+// Calculate Elder Impulse
+elder_bulls        = (ema_val > ta.ema(close[1], shortema)) and (macd_histogram > macd_histogram[1])
+elder_bears        = (ema_val < ta.ema(close[1], shortema)) and (macd_histogram < macd_histogram[1])
+elder_color        = elder_bulls ? color.green : elder_bears ? color.red : color.aqua
+
+barcolor(elder_color)
