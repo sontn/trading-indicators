@@ -1,9 +1,10 @@
 //@version=5
 indicator("Elder Supercombine", shorttitle="NhaGiaoDich Impulse", overlay = true)
+shortema = input.int(13, title="Short EMA", minval=1)
 myema = input.int(26, title="Center EMA", minval=0)
+longema = input.int(50, title="Long EMA", minval=1)
 lookback = input.int(100, title="Lookback", minval=0)
 multiplier = input.float(2, title="Multiplier", minval=0, step=0.01)
-shortema = input.int(13, title="Short EMA", minval=1)
 mode = input.bool(true, title="Use Close?")
 
 // AutoEnvelope
@@ -31,10 +32,12 @@ macd_histogram     = macd - macd_signal
 
 // Calculate EMA
 ema_val            = ta.ema(close, shortema)
+ema_long           = ta.ema(close, longema)
 
 // Plot AutoEnvelope
+plot(ema_val, title="Short EMA", color=color.purple, linewidth=1)
 plot(centerline, title="Center EMA", color=color.red, linewidth=2)
-plot(ema_val, title="Short EMA", color=color.blue, linewidth=2)
+plot(ema_long, title="Long EMA", color=color.blue, linewidth=2)
 // plot(upper, title="Upper Channel", linewidth=1)
 // plot(lower, title="Lower Channel", linewidth=1)
 
