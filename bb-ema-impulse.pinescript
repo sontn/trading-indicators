@@ -1,0 +1,55 @@
+//@version=5
+indicator("NhaGiaoDich BEI", overlay=true)
+
+//Bollinger Band, EMA 200 and Elder Impulse
+
+// Input for EMA
+shortema = input.int(13, title="Short EMA", minval=1)
+
+// MACD Options
+macd_length_fast   = input.int(12, minval=1, title="MACD Fast Length")
+macd_length_slow   = input.int(26, minval=1, title="MACD Slow Length")
+macd_length_signal = input.int(9, minval=1, title="MACD Signal Length")
+
+// Input for Bollinger Bands
+length = input.int(20, title="Bollinger Bands Length")
+src = input(close, title="Source")
+mult = input.float(2.0, title="Bollinger Bands Multiplier")
+
+// Bollinger Bands calculations (based on current timeframe)
+basis = ta.sma(src, length)
+dev = mult * ta.stdev(src, length)
+upper = basis + dev
+lower = basis - dev
+
+// Plot Bollinger Bands
+offset = input.int(0, "Offset", minval = -500, maxval = 500, display = display.data_window)
+plot(basis, "Basis", color=#2962FF, offset = offset)
+p1 = plot(upper, "Upper", color=#F23645, offset = offset)
+p2 = plot(lower, "Lower", color=#089981, offset = offset)
+fill(p1, p2, title = "Background", color=color.rgb(33, 150, 243, 95))
+
+
+// Input for EMA 200 (based on daily timeframe)
+emaLength = input.int(200, title="EMA Length")
+ema200Daily = request.security(syminfo.tickerid, "D", ta.ema(close, emaLength))
+
+// Plot EMA 200 (daily data) with blue color and double-thin line style
+plot(ema200Daily, color=color.blue, linewidth=2, title="EMA 200 (Daily)", style=plot.style_line)
+
+// Calculate EMA
+ema_val            = ta.ema(close, shortema)
+
+// Calculate MACD
+macd_ma_fast       = ta.ema(close, macd_length_fast)
+macd_ma_slow       = ta.ema(close, macd_length_slow)
+macd               = macd_ma_fast - macd_ma_slow
+macd_signal        = ta.ema(macd, macd_length_signal)
+macd_histogram     = macd - macd_signal
+
+// Calculate Elder Impulse
+elder_bulls        = (ema_val > ta.ema(close[1], shortema)) and (macd_histogram > macd_histogram[1])
+elder_bears        = (ema_val < ta.ema(close[1], shortema)) and (macd_histogram < macd_histogram[1])
+elder_color        = elder_bulls ? color.green : elder_bears ? color.red : color.aqua
+
+barcolor(elder_color)
