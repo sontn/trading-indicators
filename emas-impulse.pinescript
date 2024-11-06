@@ -1,0 +1,45 @@
+//@version=5
+indicator("NhaGiaoDich EMAS with Impulse", overlay=true)
+
+//Bollinger Band, EMA 200 and Elder Impulse
+
+// Input for EMA
+shortema = input.int(13, title="EMA for Impulse", minval=1)
+
+shortestEMA = input.int(20, title="Shortest EMA", minval=1)
+shortEMA = input.int(50, title="Short EMA", minval=1)
+longerEMA = input.int(100, title="Longer EMA", minval=1)
+longestEMA = input.int(200, title="Longest EMA", minval=1)
+
+// MACD Options
+macd_length_fast   = input.int(12, minval=1, title="MACD Fast Length")
+macd_length_slow   = input.int(26, minval=1, title="MACD Slow Length")
+macd_length_signal = input.int(9, minval=1, title="MACD Signal Length")
+
+// Calculate EMA
+ema_val            = ta.ema(close, shortema)
+
+// Calculate MACD
+macd_ma_fast       = ta.ema(close, macd_length_fast)
+macd_ma_slow       = ta.ema(close, macd_length_slow)
+macd               = macd_ma_fast - macd_ma_slow
+macd_signal        = ta.ema(macd, macd_length_signal)
+macd_histogram     = macd - macd_signal
+
+// Calculate Elder Impulse
+elder_bulls        = (ema_val > ta.ema(close[1], shortema)) and (macd_histogram > macd_histogram[1])
+elder_bears        = (ema_val < ta.ema(close[1], shortema)) and (macd_histogram < macd_histogram[1])
+elder_color        = elder_bulls ? color.green : elder_bears ? color.red : color.aqua
+
+barcolor(elder_color)
+
+// Calculate EMAs using input values
+shortest = ta.ema(close, shortestEMA)
+short = ta.ema(close, shortEMA)
+longer = ta.ema(close, longerEMA)
+longest = ta.ema(close, longestEMA)
+
+plot(shortest, color=color.red, title="EMA 20")
+plot(short, color=color.orange, title="EMA 50")
+plot(longer, color=color.aqua, title="EMA 100")
+plot(longest, linewidth=2, color=color.blue, title="EMA 200")
