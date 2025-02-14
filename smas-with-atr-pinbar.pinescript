@@ -1,0 +1,85 @@
+// This source code is subject to the terms of the GNU License 2.0 at https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+// © cma
+
+//@version=4
+study('NDG - SMAs with ATR Pin Bar', overlay=true)
+
+bullishPinBar = 1
+bearishPinBar = -1
+
+xor (a, b) =>
+    (a and not b) or (not a and b)
+
+isLongBar(bodyLength, tailLength) =>
+    (tailLength > 3 * bodyLength)
+
+isBullishBar(oneThird) =>
+    bullishBody = close > open
+
+    float bodyLength = (open > close) ? high - close : high - open
+    float tailLength = (open > close) ? close - low : open - low
+    
+    is_pin_bar = (open >= oneThird) and (close >= oneThird)
+    
+    longTail = isLongBar(bodyLength, tailLength) ? true : close < open
+    
+    is_pin_bar and (longTail or bullishBody)
+
+isBearishBar(oneThird) =>
+    bearishBody = close < open
+    
+    float bodyLength = (open > close) ? high - close : high - open
+    float tailLength = (open > close) ? close - low : open - low
+    
+    is_pin_bar = (open <= oneThird) and (close <= oneThird)
+    
+    longTail = isLongBar(bodyLength, tailLength) ? true : close < open
+    
+    is_pin_bar and (longTail or bearishBody)
+
+isPinBar() =>
+    range = high - low
+    oneThird = range / 3
+    oneThirdBullish = high - oneThird
+    oneThirdBearish = low + oneThird
+    
+    bullishPinBar = isBullishBar(oneThirdBullish)
+    bearishPinBar = isBearishBar(oneThirdBearish)
+    
+    result = xor(bullishPinBar, bearishPinBar) ? 1 : 0
+    
+    (result and bearishPinBar) ? -1 : result
+
+// Add ATR filter
+atrLength = input(14, title="ATR Length")
+atrMultiplier = input(1.3, title="ATR Multiplier")
+currentATR = atr(atrLength)
+
+atrCondition = (high - low) > (currentATR * atrMultiplier)
+
+isPinBarMade = (isPinBar() == 1 or isPinBar() == -1) and atrCondition ? true : false
+
+// Add SMA calculations
+sma10 = sma(close, 10)
+sma50 = sma(close, 50)
+sma100 = sma(close, 100)
+sma200 = sma(close, 200)
+
+// Plot SMAs
+plot(sma10, color=color.red, linewidth=2, title="SMA 10")        // Red and bold
+plot(sma50, color=color.yellow, linewidth=1, title="SMA 50")    // Yellow
+plot(sma100, color=color.purple, linewidth=1, title="SMA 100")  // Violet
+plot(sma200, color=color.blue, linewidth=2, title="SMA 200") 
+
+alertcondition(isPinBarMade, title='Pin Bar with ATR', message='Pin Bar with ATR condition has made!')
+
+barcolor(isPinBar() == bullishPinBar and atrCondition ? color.green : na)
+barcolor(isPinBar() == bearishPinBar and atrCondition ? color.red : na)
+
+// When is bullish pin bar paint green
+plotshape(isPinBar() == bullishPinBar and atrCondition, style=shape.triangleup,
+                 location=location.abovebar, color=color.green)
+
+// When is bearish pin bar paint red
+plotshape(isPinBar() == bearishPinBar and atrCondition, style=shape.triangledown,
+                 location=location.belowbar, color=color.red)
