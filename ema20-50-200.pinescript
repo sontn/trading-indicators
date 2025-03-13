@@ -1,0 +1,10 @@
+//@version=5
+indicator("NGD EMA 20/50/200", overlay=true)
+
+shortest = ta.ema(close, 20)
+short = ta.ema(close, 50)
+longest = ta.ema(close, 200)
+
+plot(shortest, color=color.new(#089981, 0), linewidth=1)
+plot(short, color=color.red, linewidth=1, transp=0)
+plot(longest, color=color.blue, linewidth=1, transp=0)
