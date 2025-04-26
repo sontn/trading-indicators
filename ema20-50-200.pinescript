@@ -1,10 +1,17 @@
 //@version=5
 indicator("NGD EMA 20/50/200", overlay=true)
 
-shortest = ta.ema(close, 20)
-short = ta.ema(close, 50)
-longest = ta.ema(close, 200)
+// Tạo input cho người dùng tùy chỉnh độ dày đường
+width_shortest = input.int(1, title="Width EMA 20")
+width_short = input.int(2, title="Width EMA 50")
+width_longest = input.int(2, title="Width EMA 200")
 
-plot(shortest, color=color.new(#089981, 0), linewidth=1)
-plot(short, color=color.red, linewidth=1, transp=0)
-plot(longest, color=color.blue, linewidth=1, transp=0)
+// Tính toán EMA
+ema20 = ta.ema(close, 20)
+ema50 = ta.ema(close, 50)
+ema200 = ta.ema(close, 200)
+
+// Vẽ các đường EMA với độ dày tùy chỉnh
+plot(ema20, color=color.new(#089981, 0), linewidth=width_shortest, title="EMA 20")
+plot(ema50, color=color.red, linewidth=width_short, title="EMA 50")
+plot(ema200, color=color.blue, linewidth=width_longest, title="EMA 200")
